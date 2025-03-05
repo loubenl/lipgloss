@@ -10,7 +10,9 @@ import (
 // HeaderRow denotes the header's row index used when rendering headers. Use
 // this value when looking to customize header styles in StyleFunc.
 const HeaderRow int = -1
-
+const FirstCol int = 0
+const NoBorder string = " "
+const EmptyCell string = ""
 // StyleFunc is the style function that determines the style of a Cell.
 //
 // It takes the row and column of the cell as an input and determines the
@@ -209,9 +211,6 @@ func (t *Table) Height(h int) *Table {
 }
 
 // Offset sets the table rendering offset.
-//
-// Warning: you may declare Offset only after setting Rows. Otherwise it will be
-// ignored.
 func (t *Table) Offset(o int) *Table {
 	t.offset = o
 	return t
@@ -517,7 +516,7 @@ func (t *Table) constructRows(availableLines int) string {
 		// check there's enough content to fill the table
 		rowIdx = t.data.Rows() - rowsToRender
 	}
-	for rowsToRender > 0 && rowIdx < t.data.Rows() {
+	for rowsToRender > 0 && rowIdx < t.data.Rows() { // rows to render is number of columns in table
 		// Whenever the height is too small to render all rows, the bottom row will be an overflow row (ellipsis).
 		isOverflow := needsOverflow && rowsToRender == 1
 
@@ -580,16 +579,54 @@ func (t *Table) constructRow(index int, isOverflow bool) string {
 
 	s.WriteString(lipgloss.JoinHorizontal(lipgloss.Top, cells...) + "\n")
 
-	if t.borderRow && index < t.data.Rows()-1 {
-		s.WriteString(t.borderStyle.Render(t.border.MiddleLeft))
-		for i := 0; i < len(t.widths); i++ {
-			s.WriteString(t.borderStyle.Render(strings.Repeat(t.border.Bottom, t.widths[i])))
-			if i < len(t.widths)-1 && t.borderColumn {
-				s.WriteString(t.borderStyle.Render(t.border.Middle))
-			}
-		}
-		s.WriteString(t.borderStyle.Render(t.border.MiddleRight) + "\n")
-	}
+	t.drawRowBorders(&s, index)
 
 	return s.String()
+}
+
+
+// For the given row, draws the top, bottom, and right borders
+func (t *Table) drawRowBorders(s *strings.Builder, row int) {
+	if t.borderRow && row < t.data.Rows()-1 {
+		t.drawLeftmostBorder(s, row)
+		t.drawMiddleBorders(s, row)
+		t.drawRightmostBorder(s)
+	}
+}
+
+// Draws the leftmost border for a singular row
+func (t *Table) drawLeftmostBorder(s *strings.Builder, row int) {
+	if (t.data.At(row + 1, FirstCol) != EmptyCell) {
+		s.WriteString(t.borderStyle.Render(t.border.MiddleLeft)) // includes right intersection notch
+	} else {
+		s.WriteString(t.borderStyle.Render(t.border.Left)) 
+	}
+}
+
+// Draws the left, bottom, and right borders for all middle cells for a singular row 
+func (t *Table) drawMiddleBorders(s *strings.Builder, row int) {
+	if ( FirstCol < len(t.widths)-1 && t.borderColumn && t.data.At(row + 1, FirstCol) != EmptyCell ) {
+		// draw bottom border only if the next row contains text
+		s.WriteString(t.borderStyle.Render(strings.Repeat(t.border.Bottom, t.widths[FirstCol]))) 
+		s.WriteString(t.borderStyle.Render(t.border.Middle))
+	} else {
+		// no horizontal border, merges cells in column
+		s.WriteString(t.borderStyle.Render(strings.Repeat(NoBorder, t.widths[FirstCol]))) 
+		s.WriteString(t.borderStyle.Render(t.border.MiddleLeft))
+	}
+
+	for col := 1; col < len(t.widths); col++ {
+		// draws horizontal border spanning 1 col width
+		s.WriteString(t.borderStyle.Render(strings.Repeat(t.border.Bottom, t.widths[col]))) 
+
+		// draws middle border intersections
+		if col < len(t.widths)-1 && t.borderColumn {
+			s.WriteString(t.borderStyle.Render(t.border.Middle))
+		}
+	}
+}
+
+// Draws the rightmost border for a singular row
+func (t *Table) drawRightmostBorder(s *strings.Builder) {
+	s.WriteString(t.borderStyle.Render(t.border.MiddleRight) + "\n")
 }
