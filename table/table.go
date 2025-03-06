@@ -607,12 +607,12 @@ func (t *Table) drawLeftmostBorder(s *strings.Builder, row int) {
 func (t *Table) drawMiddleBorders(s *strings.Builder, row int) {
 	if ( FirstCol < len(t.widths)-1 && t.borderColumn && t.data.At(row + 1, FirstCol) != EmptyCell ) {
 		// draw bottom border only if the next row contains text
-		s.WriteString(t.borderStyle.Render(strings.Repeat(t.border.Bottom, t.widths[FirstCol]))) 
-		s.WriteString(t.borderStyle.Render(t.border.Middle))
+		//s.WriteString(t.borderStyle.Render(strings.Repeat(t.border.Bottom, t.widths[FirstCol]))) 
+		//s.WriteString(t.borderStyle.Render(t.border.Middle))
 	} else {
 		// no horizontal border, merges cells in column
-		s.WriteString(t.borderStyle.Render(strings.Repeat(NoBorder, t.widths[FirstCol]))) 
-		s.WriteString(t.borderStyle.Render(t.border.MiddleLeft))
+		//s.WriteString(t.borderStyle.Render(strings.Repeat(NoBorder, t.widths[FirstCol]))) 
+		//s.WriteString(t.borderStyle.Render(t.border.MiddleLeft))
 	}
 
 	for col := 1; col < len(t.widths); col++ {
