@@ -579,7 +579,7 @@ func (t *Table) constructRow(index int, isOverflow bool) string {
 
 	s.WriteString(lipgloss.JoinHorizontal(lipgloss.Top, cells...) + "\n")
 
-	
+	t.drawRowBorders(&s, index)
 
 	return s.String()
 }
@@ -589,8 +589,8 @@ func (t *Table) constructRow(index int, isOverflow bool) string {
 func (t *Table) drawRowBorders(s *strings.Builder, row int) {
 	if t.borderRow && row < t.data.Rows()-1 {
 		t.drawLeftmostBorder(s, row)
-		//t.drawMiddleBorders(s, row)
-		//t.drawRightmostBorder(s)
+		t.drawMiddleBorders(s, row)
+		t.drawRightmostBorder(s)
 	}
 }
 
