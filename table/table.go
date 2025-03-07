@@ -579,7 +579,7 @@ func (t *Table) constructRow(index int, isOverflow bool) string {
 
 	s.WriteString(lipgloss.JoinHorizontal(lipgloss.Top, cells...) + "\n")
 
-	t.drawRowBorders(&s, index)
+	
 
 	return s.String()
 }
